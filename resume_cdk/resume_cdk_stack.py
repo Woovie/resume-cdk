@@ -10,9 +10,9 @@ from aws_cdk import (
 
 from constructs import Construct
 
-from resume_cdk.constructor import ResumeConstructor
+from resume_cdk.constructor import ResumeConstructor# TODO fix import error, no idea why it has one
 
-from resume_cdk.domain_details import DomainDetails
+from resume_cdk.domain_details import DomainDetails# TODO fix import error, no idea why it has one
 
 class ResumeCdkStack(Stack):
     """

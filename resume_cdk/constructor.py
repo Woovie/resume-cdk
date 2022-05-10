@@ -5,16 +5,16 @@ from aws_cdk import (
     RemovalPolicy,
     aws_s3 as s3,
     aws_certificatemanager as acm,
-    aws_route53 as route53,
+    aws_route53 as route53,# TODO replace Route 53 with Cloudflare
     aws_cloudfront as cloudfront,
     aws_cloudfront_origins as origins,
     aws_route53_targets as targets,
-    aws_ssm as ssm,
+    aws_ssm as ssm,# TODO I may not use this, but I'd like to implement it regardless
 )
 
 from constructs import Construct
 
-from resume_cdk.domain_details import DomainDetails
+from resume_cdk.domain_details import DomainDetails# TODO fix import error, no idea why it has one
 
 class ResumeConstructor(Construct):
     """
