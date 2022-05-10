@@ -28,7 +28,7 @@
       "aws",
       "aws-cn"
     ],
-    "environemts": {
+    "environments": {
       "production": {
         "namespace": "resume",
         "domain_name": "me.plantain.space",
