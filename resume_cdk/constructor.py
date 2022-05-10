@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_cloudfront_origins as origins,
     aws_route53_targets as targets,
     aws_ssm as ssm,# TODO I may not use this, but I'd like to implement it regardless
+    aws_iam as iam,
 )
 
 from constructs import Construct
@@ -38,6 +39,10 @@ class ResumeConstructor(Construct):
         self.__hosted_zone_id = domain_details.zone_id
         self.__domain_certificate_arn = domain_details.certificate_arn
 
+        self.__origin_referer_header = ssm.StringParameter.from_string_parameter_attributes(
+            self, "custom_header", parameter_name=domain_details.custom_header_parameter_name
+        ).string_value
+
         self._build_site()
 
     def _create_site_bucket(self):  # Always a private bucket
@@ -49,6 +54,17 @@ class ResumeConstructor(Construct):
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
+        )
+        bucket_policy = iam.PolicyStatement(
+            actions=["s3.GetObject"],
+            resources=[self.bucket.arn_for_objects("*")],
+            principals=[iam.AnyPrincipal()]
+        )
+        bucket_policy.add_condition(
+            "StringEquals",
+            {
+                "aws:Referer": self.__origin_referer_header
+            }
         )
 
     def __get_hosted_zone(self):
@@ -81,12 +97,17 @@ class ResumeConstructor(Construct):
             self,
             "resume_cf_distribution",
             default_behavior=cloudfront.BehaviorOptions(
-                origin=origins.S3Origin(self.bucket),
-                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                origin=origins.S3Origin(
+                    self.bucket,
+                    custom_headers={
+                        "Referer": self.__origin_referer_header
+                    }
+                ),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
             ),
             domain_names=[self._site_domain_name],
             certificate=self.certificate,
-            default_root_object="index.html",
+            default_root_object="index.html"
         )
 
     def __create_route53_record(self, hosted_zone: route53.HostedZone):
@@ -97,7 +118,7 @@ class ResumeConstructor(Construct):
             zone=hosted_zone,
             target=route53.RecordTarget.from_alias(
                 targets.CloudFrontTarget(self.distribution)
-            ),
+            )
         )
 
     def _build_site(self):
