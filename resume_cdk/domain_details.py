@@ -13,6 +13,6 @@ class DomainDetails:
     """
     zone_id: str
     zone_name: str
-    certificate_arn: acm.DnsValidatedCertificate
     site_domain_name: str
     custom_header_parameter_name: str
+    certificate_arn: acm.DnsValidatedCertificate = None
